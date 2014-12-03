@@ -12,6 +12,7 @@ import java.awt.event.FocusListener;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 
@@ -102,7 +103,13 @@ public class mainFrame extends JFrame{
 		JButton btnMaximumYap = new JButton("Maximum Yap");
 		btnMaximumYap.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				IterasyonFrame frmit = new IterasyonFrame(mtr);
+				int[][] clonematris = new int[9][9];
+				for(int i =0;i<9;i++){
+					for(int j=0;j<9;j++){
+						clonematris[i][j]=mtr[i][j];
+					}
+				}
+				IterasyonFrame frmit = new IterasyonFrame(clonematris);
 				frmit.setVisible(true);
 			}
 		});
@@ -119,8 +126,13 @@ public class mainFrame extends JFrame{
 			}
 		}
 	}
-	private void RandomizeMatrixOlustur(){// this.mtr deki matrisi randomize olusturur.
+	
+	private void RandomizeMatrixOlustur(){// taşlari matrise random bir şekilde dizer.
 		 int sayac=0;
+		 if((vezirsayisi+atsayisi)>81){
+			 JOptionPane.showMessageDialog(this, "At ve Vezir Sayisi En Fazla 81 olmalidir.", "HATA", JOptionPane.ERROR_MESSAGE);
+			 return;
+		 }
 		 Random rnd = new Random();
 		 int x,y;
 		 for(int i =0;i<9;i++){
@@ -148,14 +160,11 @@ public class mainFrame extends JFrame{
                  sayac++;
              }
          }
-
  		RemoveAllChildrenOfPanel(pnlCizim);
 		MatrixToPanel(mtr, pnlCizim); // matrix randomize oluşturulduktan sonra panele çizdirilir.
 	}
 	private static final long serialVersionUID = 1L;
-	
-	
-	public static void RemoveAllChildrenOfPanel(JPanel pnl){// resimler silinmeyip üst üste biniyor. !!!!!!!!!!!!!!!
+	public static void RemoveAllChildrenOfPanel(JPanel pnl){
 		for(int i =0;i<pnl.getComponentCount();i++){
 			if(pnl.getComponent(i) instanceof mypnl){
 				mypnl pp = (mypnl)pnl.getComponent(i);

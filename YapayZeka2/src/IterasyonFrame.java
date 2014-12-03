@@ -70,7 +70,7 @@ public class IterasyonFrame extends JFrame{
 		
 		panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.SOUTH);
-		
+		panel.setLayout(new BorderLayout());
 		btnAdimAdimIlerlet = new JButton("Sonraki");
 		btnAdimAdimIlerlet.addActionListener(new ActionListener() {
 			
@@ -81,60 +81,60 @@ public class IterasyonFrame extends JFrame{
 				
 			}
 		});
-		panel.add(btnAdimAdimIlerlet);
-		
-		btnYavaslatilmisGoster = new JButton("Yavaslatilmis Goster");
-		panel.add(btnYavaslatilmisGoster);
-		
-		btnSonaGit = new JButton("Sona git");
-		panel.add(btnSonaGit);
+		panel.add(btnAdimAdimIlerlet,BorderLayout.CENTER);
 	}
-	private void IterasyonSonrasiGuiIslemleri(){
+	@Override
+	public void setVisible(boolean b) {
+		// TODO Auto-generated method stub
+		super.setVisible(b);
+		mainFrame.MatrixToPanel(matris, pnlCizim);
+	}
+	private int IterasyonSonrasiGuiIslemleri(){
 		if(listIterasyon.size()>maxmemory){
 			maxmemory = listIterasyon.size();
 			lblHafiza.setText(String.valueOf(maxmemory+"Nodes"));
 		}
 		lbliterasyon.setText(String.valueOf(iterasyonsayisi));
-		int index = YeniTahtayiGoruntule();
+		int index = YeniTahtayiGoruntule();// Eğer Yeni Tahtadan Gelen Deger -1 ise yani iterasyondaki değer maximum ise lokal maksimum bulunmuştur ve daha fazla iterasyon yapmaz.
 		if(index ==-1){
 			JOptionPane.showMessageDialog(this, "Lokal Maksimum Noktasina Gelindi", "Bitiş", JOptionPane.INFORMATION_MESSAGE);
-			return;
+			return -1;
 		}
 		int tehdit = listIterasyon.get(index).tehdit;
-		iternode n = listIterasyon.get(index);
+		iternode n = listIterasyon.get(index); // Yeni durumdaki iterasyon alınır.
 		
-		n.tas.KonumAta(n.yeniyeri.x, n.yeniyeri.y);
+		n.tas.KonumAta(n.yeniyeri.x, n.yeniyeri.y);// Tasin yeni konumu atanır.
 		for (int i = 0; i < matris.length; i++) {
 			for (int j = 0; j < matris.length; j++) {
-				matris[i][j]=0;
+				matris[i][j]=0;// Tasin matristeki değeri 0lanır.
 			}
 		}
 		for (int i = 0; i < listTaslar.size(); i++) {
 			taslar tas = listTaslar.get(i);
 			
 			if(tas instanceof vezir){
-				matris[tas.KonumGetir().x][tas.KonumGetir().y]=-1;
+				matris[tas.KonumGetir().x][tas.KonumGetir().y]=-1;// Tasin yeni konumu matriste yerine koyulur.
 			}else
 
 				matris[tas.KonumGetir().x][tas.KonumGetir().y]=-2;
 		}
-		lbltehdit.setText(String.valueOf(tehdit));
+		lbltehdit.setText(String.valueOf(tehdit)); 
 		mainFrame.RemoveAllChildrenOfPanel(pnlCizim);
-		mainFrame.MatrixToPanel(matris, pnlCizim);
+		mainFrame.MatrixToPanel(matris, pnlCizim);// Tahtayı matrise çizer.
 		pnlCizim.repaint();
 		pnlCizim.revalidate();
-		listIterasyon.clear();
-		
+		listIterasyon.clear(); // Listedeki tüm iterasyonları temizler.
+		return 0;
 	}
 	
-	private int tablonuntehdidinihesapla(int mtr[][]){
+	private int tablonuntehdidinihesapla(int mtr[][]){//Her tasin tehdit ettigi kareleri toplar.
 		int count = 0;
 		for(int i =0;i<listTaslar.size();i++){
 			count +=listTaslar.get(i).kontrol();
 		}
 		return count;
 	}
-	private void TaslariListeyeEkle(){
+	private void TaslariListeyeEkle(){ // Matris uzerinde bulunan taslari "(-1) Vezir,(-2) At " olacak şekilde matristen alıp listeye ekler.
 		for(int i =0;i<9;i++)
 			for(int j =0;j<9;j++)
 				if(matris[i][j]==-1){
@@ -149,34 +149,29 @@ public class IterasyonFrame extends JFrame{
 	private int maxmemory;
 	private int maxTehditSayisi ;
 	private int iterasyonsayisi = 0;
-	private void iterasyonYap() {// iterasyon yapilacak 
+	private void iterasyonYap() {
 		if(iterasyonsayisi<1000){
-			for (int i = 0; i < listTaslar.size(); i++) {
+			for (int i = 0; i < listTaslar.size(); i++) {//  Her Iterasyonda listede bulunan butun taslarin yapabileceği hamleler hesaplanır ve iterasyon listesine eklenir.
 				if(listTaslar.get(i) instanceof vezir){
-					/* HATA taşın hareketleri bakılmadan matristeki yeri sıfırlanıyor . Taşın gidebileceği her yer vezirHareketleri fonksiyonunda çağırılıyor
-					 * fonksiyonda vezirin her hareketinde matristeki o harekete x,y atanıyor . Tahtanın tehdit sayısı bulunuyor ve listiterasyona ekleniyor.
-					 * Bu işlem yapıldıktan sonra matristeki x,y değeri 0 lanıyor ve sonraki hamleye geçiyor. Hata şurada ki bu fonksiyon çağırıldıktan sonra vezirler siliniyor*/
 					vezir vzr =(vezir) listTaslar.get(i);
 					int x = vzr.x;
 					int y = vzr.y;
-					matris[x][y]=0;
+					matris[x][y]=0;// Tas hareket etmeden once matristeki durumu 0 lanır ve yapabileceği tüm hareketler denenir.
 					vezirHareketleri(vzr,vzr.x, vzr.y, matris);
-					matris[x][y]=-1;
+					matris[x][y]=-1;//Tum hareketler denendikten sonra tas tekrar yerine koyulur.
 					vzr.x = x;
 					vzr.y = y;
 				}else{
-					 //at att = (at)listTaslar.get(i);
+					at att = (at)listTaslar.get(i);
+					int x = att.x;
+					int y = att.y;
+					matris[x][y] = 0;
+					atHareketleri(att, att.x,att.y, matris);
+					matris[x][y]=-2;
+					att.x = x;
+					att.y = y;
 				}
 			}
-			/*for (int i = 0; i < matris.length; i++) {
-				for (int j = 0; j < matris.length; j++) {
-					if(matris[i][j]==-1){
-						System.out.println("Matristeki Vezirin Yeri : "+i+","+j);
-					}
-				}
-			}
-			System.out.println("Iterasyon Sayisi : "+listIterasyon.size());
-			System.out.println(listTaslar.size());*/
 			iterasyonsayisi++;
 		}
 	}
@@ -189,25 +184,22 @@ public class IterasyonFrame extends JFrame{
 				index = i;
 			}
 		}
+		
 		if(max>maxTehditSayisi){
 			maxTehditSayisi = max;
 			return index;
-			
-			// düşük bir olasılıkta yanlış hamle yapmasını sağlar
 		}
-			
-			
 		else
 			return -1;
 		
 	}
-	private void vezirHareketleri(vezir vzr,int a,int b,int mtr[][]){
-		
+	private void vezirHareketleri(vezir vzr,int a,int b,int mtr[][]){// vezirin yapılabileceği tüm hamleleri yapar ve yapilacak iterasyona ekler.
 		int x = a;
 		int y = b;
 				x--;
 				y++;
-				while(x>=0 && y<=8)
+				boolean cik = false;
+				while(x>=0 && y<=8 && !cik)
 				{
 					if(mtr[x][y]!=-1 && mtr[x][y]!=-2)
 					{
@@ -222,6 +214,8 @@ public class IterasyonFrame extends JFrame{
 						node.tehdit = tablonuntehdidinihesapla(mtr);
 						mtr[x][y]=0;
 						listIterasyon.add(node);
+					}else{
+						cik=true;
 					}
 					x--;
 					y++;		
@@ -230,8 +224,8 @@ public class IterasyonFrame extends JFrame{
 				y = b;
 				x--;
 				y--;
-				
-				while(x>=0 && y>=0)
+				cik = false;
+				while(x>=0 && y>=0&& !cik)
 				{
 					if(mtr[x][y]!=-1 && mtr[x][y]!=-2)
 					{
@@ -246,6 +240,8 @@ public class IterasyonFrame extends JFrame{
 						node.tehdit = tablonuntehdidinihesapla(mtr);
 						mtr[x][y]=0;
 						listIterasyon.add(node);
+					}else{
+						cik=true;
 					}
 					x--;
 					y--;			
@@ -254,8 +250,8 @@ public class IterasyonFrame extends JFrame{
 				y = b;
 				x++;
 				y--;
-				
-				while(x<=8 && y>=0)
+				cik = false;
+				while(x<=8 && y>=0 && !cik)
 				{
 					if(mtr[x][y]!=-1 && mtr[x][y]!=-2)
 					{
@@ -271,6 +267,8 @@ public class IterasyonFrame extends JFrame{
 						node.tehdit = tablonuntehdidinihesapla(mtr);
 						mtr[x][y]=0;
 						listIterasyon.add(node);
+					}else{
+						cik=true;
 					}
 					x++;
 					y--;			
@@ -278,8 +276,8 @@ public class IterasyonFrame extends JFrame{
 				x=a;
 				y=b;
 				x++;
-				
-				while(x<=8)//asagi
+				cik = false;
+				while(x<=8 && !cik)//asagi
 				{
 					if(mtr[x][y]!=-1 && mtr[x][y]!=-2)
 					{
@@ -295,15 +293,16 @@ public class IterasyonFrame extends JFrame{
 						node.tehdit = tablonuntehdidinihesapla(mtr);
 						mtr[x][y]=0;
 						listIterasyon.add(node);
-					}
+					}else
+						cik=true;
 					
 					x++;			
 				}	
 				x=a;
 				y=b;	
 				x--;
-				
-				while(x>=0)//asagi
+				cik = false;
+				while(x>=0 && !cik)//asagi
 				{
 					if(mtr[x][y]!=-1 && mtr[x][y]!=-2)
 					{
@@ -319,18 +318,18 @@ public class IterasyonFrame extends JFrame{
 						node.tehdit = tablonuntehdidinihesapla(mtr);
 						mtr[x][y]=0;
 						listIterasyon.add(node);
-					}
+					}else
+						cik = true;
 					x--;			
 				}	
 				x=a;
 				y=b;
 				y--;
-				
-				while(y>=0)//asagi
+				cik = false;
+				while(y>=0 && !cik)//asagi
 				{
 					if(mtr[x][y]!=-1 && mtr[x][y]!=-2)
 					{
-						
 						vzr.x = x;
 						vzr.y = y;
 						mtr[x][y]=-1;
@@ -342,19 +341,18 @@ public class IterasyonFrame extends JFrame{
 						node.tehdit = tablonuntehdidinihesapla(mtr);
 						mtr[x][y]=0;
 						listIterasyon.add(node);
-					}
-					
+					}else
+					cik = true;
 					y--;
 		        }	
 				x=a;
 				y=b;
 				y++;
-				
-				while(y<=8)//asagi
+				cik = false;
+				while(y<=8 && !cik)//asagi
 				{
 					if(mtr[x][y]!=-1 && mtr[x][y]!=-2)
 					{
-						
 						vzr.x = x;
 						vzr.y = y;
 						mtr[x][y]=-1;
@@ -366,30 +364,133 @@ public class IterasyonFrame extends JFrame{
 						node.tehdit = tablonuntehdidinihesapla(mtr);
 						mtr[x][y]=0;
 						listIterasyon.add(node);
-					}
+					}else
+						cik = true;
 					y++;			
 				}		
 				
 				
 	}
-	private ArrayList<Point> atHareketleri(int a,int b,int mtr[][]){
-	//	mtr[x][y]=0;
-		return null;
+	private void atHareketleri(at att,int a,int b,int mtr[][]){// atin yapabileceği tüm hamleleri yapar ve iterasyona ekler
+		int x = a,y = b;
+		  if(x-2>=0 && y-1>=0 && (matris[x-2][y-1]!=-1 && matris[x-2][y-1]!=-2)) 
+	         {
+			  att.x = x-2;
+			  att.y = y-1;
+			  mtr[x-2][y-1] = -2;
+			  iternode node = new iternode();
+			  node.eskiyeri = new Point(a,b);
+			  node.yeniyeri = new Point(x-2,y-1);
+			  node.tastipi = -2;
+			  node.tas = att;
+			  node.tehdit = tablonuntehdidinihesapla(mtr);
+			  mtr[x-2][y-1] = 0;
+			  listIterasyon.add(node);
+	         }
+	         if(x-2>=0 && y+1<=8 && (matris[x-2][y+1]!=-1 && matris[x-2][y+1]!=-2)) 
+	         {
+	        	 att.x = x-2;
+				  att.y = y+1;
+				  mtr[x-2][y+1] = -2;
+				  iternode node = new iternode();
+				  node.eskiyeri = new Point(a,b);
+				  node.yeniyeri = new Point(x-2,y+1);
+				  node.tastipi = -2;
+				  node.tas = att;
+				  node.tehdit = tablonuntehdidinihesapla(mtr);
+				  mtr[x-2][y+1] = 0;
+				  listIterasyon.add(node);
+	         }
+	         if(x-1>=0 && y-2>=0 && (matris[x-1][y-2]!=-1 && matris[x-1][y-2]!=-2)) 
+	         {
+	        	  att.x = x-1;
+				  att.y = y-2;
+				  mtr[x-1][y-2] = -2;
+				  iternode node = new iternode();
+				  node.eskiyeri = new Point(a,b);
+				  node.yeniyeri = new Point(x-1,y-2);
+				  node.tastipi = -2;
+				  node.tas = att;
+				  node.tehdit = tablonuntehdidinihesapla(mtr);
+				  mtr[x-1][y-2] = 0;
+				  listIterasyon.add(node);
+	         }       
+	         if(x-1>=0 && y+2<=8 && (matris[x-1][y+2]!=-1 && matris[x-1][y+2]!=-2)) 
+	         {
+	        	  att.x = x-1;
+				  att.y = y+2;
+				  mtr[x-1][y+2] = -2;
+				  iternode node = new iternode();
+				  node.eskiyeri = new Point(a,b);
+				  node.yeniyeri = new Point(x-1,y+2);
+				  node.tastipi = -2;
+				  node.tas = att;
+				  node.tehdit = tablonuntehdidinihesapla(mtr);
+				  mtr[x-1][y+2] = 0;
+				  listIterasyon.add(node);
+	         }       
+	         if(x+1<=8 && y-2>=0 && (matris[x+1][y-2]!=-1 && matris[x+1][y-2]!=-2)) 
+	         {
+	        	  att.x = x+1;
+				  att.y = y-2;
+				  mtr[x+1][y-2] = -2;
+				  iternode node = new iternode();
+				  node.eskiyeri = new Point(a,b);
+				  node.yeniyeri = new Point(x+1,y-2);
+				  node.tastipi = -2;
+				  node.tas = att;
+				  node.tehdit = tablonuntehdidinihesapla(mtr);
+				  mtr[x+1][y-2] = 0;
+				  listIterasyon.add(node);
+	         }
+	         if(x+1<=8 && y+2<=8 && (matris[x+1][y+2]!=-1 && matris[x+1][y+2]!=-2)) 
+	         {
+	        	 att.x = x+1;
+				  att.y = y+2;
+				  mtr[x+1][y+2] = -2;
+				  iternode node = new iternode();
+				  node.eskiyeri = new Point(a,b);
+				  node.yeniyeri = new Point(x+1,y+2);
+				  node.tastipi = -2;
+				  node.tas = att;
+				  node.tehdit = tablonuntehdidinihesapla(mtr);
+				  mtr[x+1][y+2] = 0;
+				  listIterasyon.add(node);
+	         }
+	         if(x+2<=8 && y-1>=0 && (matris[x+2][y-1]!=-1 && matris[x+2][y-1]!=-2)) 
+	         {
+	        	  att.x = x+2;
+				  att.y = y-1;
+				  mtr[x+2][y-1] = -2;
+				  iternode node = new iternode();
+				  node.eskiyeri = new Point(a,b);
+				  node.yeniyeri = new Point(x+2,y-1);
+				  node.tastipi = -2;
+				  node.tas = att;
+				  node.tehdit = tablonuntehdidinihesapla(mtr);
+				  mtr[x+2][y-1] = 0;
+				  listIterasyon.add(node);
+	         }
+	         if(x+2<=8 && y+1<=8 && (matris[x+2][y+1]!=-1 && matris[x+2][y+1]!=-2)) 
+	         {
+	        	 att.x = x+2;
+				  att.y = y+1;
+				  mtr[x+2][y+1] = -2;
+				  iternode node = new iternode();
+				  node.eskiyeri = new Point(a,b);
+				  node.yeniyeri = new Point(x+2,y+1);
+				  node.tastipi = -2;
+				  node.tas = att;
+				  node.tehdit = tablonuntehdidinihesapla(mtr);
+				  mtr[x+2][y+1] = 0;
+				  listIterasyon.add(node);
+	         }
 	}
-	class iternode{
-		Point eskiyeri;// tasin hareketten onceki yeri
+	class iternode{ // Her bir iterasyonun listede tutulma sekli.
+		Point eskiyeri; // tasin hareketten onceki yeri
 		Point yeniyeri;// tasin hareketten sonraki yeri
 		int tastipi;// -1 ise vezir, -2 ise at
 		int tehdit;// tahtada taş yeni yerine koyulduğundaki tehdit sayısını tutar
 		taslar tas;
-	}
-	private void matrisiyazdir(){
-		for (int i = 0; i < matris.length; i++) {
-			for (int j = 0; j < matris.length; j++) {
-				System.out.print(matris[i][j]+" ");
-			}
-			System.out.println();
-		}
-		System.out.println("*********");
 	}
 }
